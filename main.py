@@ -1,21 +1,24 @@
 import requests
 import torch
+import os
 from PIL import Image
 from torch.nn.functional import cosine_similarity
 from transformers import CLIPModel, CLIPProcessor
+
 
 # Load pre-trained CLIP model and processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Load images
-image_urls = [
-    "http://images.cocodataset.org/val2017/000000010363.jpg",
-    "http://images.cocodataset.org/val2017/000000022192.jpg",
-]
+image_urls = []
+for root, dirs, files in os.walk("images"):
+    for name in files:
+        image_urls.append(os.path.join(root, name))
+
 
 images = [
-    Image.open(requests.get(image_url, stream=True).raw) for image_url in image_urls
+    Image.open(image_url) for image_url in image_urls
 ]
 
 # Prepare search term
