@@ -25,14 +25,13 @@ def get_db():
     finally:
         db.close()
 
-
 # Load pre-trained CLIP model and processor
 loading_start = time.monotonic()
 
 MODEL_NAME="openai/clip-vit-base-patch32"
 
-ml_model = CLIPModel.from_pretrained(MODEL_NAME)
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True)
+ml_model = CLIPModel.from_pretrained(MODEL_NAME, cache_dir=constants.PRETRAINED_MODEL_CACHE_PATH)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True, cache_dir=constants.PRETRAINED_MODEL_CACHE_PATH)
 
 loading_end = time.monotonic()
 print(f"Loading Model Time: {(loading_end - loading_start): .2f} seconds")

@@ -5,8 +5,13 @@ import constants
 from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
 
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True)
+loading_start = time.monotonic()
+
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", cache_dir = constants.PRETRAINED_MODEL_CACHE_PATH)
+processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True, cache_dir = constants.PRETRAINED_MODEL_CACHE_PATH)
+
+loading_end = time.monotonic()
+print(f"Loading Model Time: {(loading_end - loading_start): .2f} seconds")
 
 # Load images
 image_urls = []

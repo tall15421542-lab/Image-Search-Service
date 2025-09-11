@@ -1,0 +1,25 @@
+services:
+  image-search-service:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    volumes: 
+      - "./pretrained_model:/pretrained_model"
+      - precomputed_image_embeddings:/precomputed
+    depends_on:
+      precompute-image-embeddings:
+        condition: service_completed_successfully
+
+  precompute-image-embeddings:
+    build:
+      context: ./
+      dockerfile: precompute.Dockerfile
+    volumes:
+      - "./images:/images"
+      - "./pretrained_model:/pretrained_model"
+      - precomputed_image_embeddings:/precomputed
+volumes:
+  precomputed_image_embeddings:
+    
