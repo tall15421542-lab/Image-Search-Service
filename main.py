@@ -1,9 +1,8 @@
 import torch
-import os
 import time
-from PIL import Image
+import constants
 from torch.nn.functional import cosine_similarity
-from transformers import AutoTokenizer, CLIPModel, CLIPProcessor
+from transformers import AutoTokenizer, CLIPModel
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -11,39 +10,19 @@ from pydantic import BaseModel
 loading_start = time.monotonic()
 
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
+tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32", use_fast=True)
 
 loading_end = time.monotonic()
 print(f"Loading Model Time: {(loading_end - loading_start): .2f} seconds")
 
-# Load images
-loading_image_start = time.monotonic()
+loading_embeddings_start = time.monotonic()
 
-image_urls = []
-for root, dirs, files in os.walk("images"):
-    for name in files:
-        image_urls.append(os.path.join(root, name))
+store = torch.load(constants.IMAGE_EMBEDDING_STORE_PATH)
+image_embeddings = store[constants.IMAGE_EMBEDDINGS_KEY]
+image_urls = store[constants.IMAGE_URLS_KEY]
 
-images = [
-    Image.open(image_url) for image_url in image_urls
-]
-
-loading_image_end = time.monotonic()
-print(f"Loading Image Time: {(loading_image_end - loading_image_start): .2f} seconds")
-
-preprocess_image_start = time.monotonic()
-
-imagePreprocessor = processor(images=images, return_tensors="pt")
-with torch.no_grad():
-    image_embeddings = model.get_image_features(**imagePreprocessor)
-
-image_embeddings = image_embeddings / image_embeddings.norm(
-    dim=-1, keepdim=True
-)
-
-preprocess_image_end = time.monotonic()
-print(f"Preprocess image embeddings Time: {(preprocess_image_end - preprocess_image_start): .2f} seconds")
+loading_embeddings_end = time.monotonic()
+print(f"Loading embeddings Time: {(loading_embeddings_end - loading_embeddings_start): .2f} seconds")
 
 app = FastAPI()
 
