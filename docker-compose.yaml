@@ -20,6 +20,7 @@ services:
       - "./images:/images"
       - "./pretrained_model:/pretrained_model"
       - precomputed_image_embeddings:/precomputed
+
 volumes:
   precomputed_image_embeddings:
     
