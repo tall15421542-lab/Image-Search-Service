@@ -8,9 +8,13 @@ services:
     volumes: 
       - "./pretrained_model:/pretrained_model"
       - precomputed_image_embeddings:/precomputed
+    environment:
+      DB_HOST: "db"
     depends_on:
       precompute-image-embeddings:
         condition: service_completed_successfully
+      db:
+        condition: service_healthy
 
   precompute-image-embeddings:
     build:
@@ -20,7 +24,22 @@ services:
       - "./images:/images"
       - "./pretrained_model:/pretrained_model"
       - precomputed_image_embeddings:/precomputed
+  db:
+    image: postgres:16.10-alpine
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "db"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - "./healthchecks:/healthchecks"
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: /healthchecks/postgres.sh
+      interval: "5s"
 
 volumes:
   precomputed_image_embeddings:
+  db-data:
     

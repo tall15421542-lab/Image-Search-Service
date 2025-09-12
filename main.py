@@ -3,6 +3,7 @@ import time
 import constants
 import model
 import uuid
+import os
 from datetime import datetime
 from torch.nn.functional import cosine_similarity
 from transformers import AutoTokenizer, CLIPModel
@@ -13,8 +14,10 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import IntegrityError
 from typing import Annotated
 
-DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(DATABASE_URL, echo=True, connect_args={"check_same_thread": False})
+db_host = os.getenv("DB_HOST", "localhost")
+
+DATABASE_URL = "postgresql://postgres:postgres@{db_host}:5432/db".format(db_host = db_host)
+engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 model.Base.metadata.create_all(bind=engine)
 
