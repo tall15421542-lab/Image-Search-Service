@@ -1,13 +1,22 @@
 services:
+  precompute-image-embeddings:
+    build:
+      context: ./
+      dockerfile: preprocess/Dockerfile
+    volumes:
+      - "./images:/images"
+      - pretrained_model:/pretrained_model
+      - precomputed_image_embeddings:/precompute_image_embeddings
+
   image-search-service:
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: app/Dockerfile
     ports:
       - 8000:8000
     volumes: 
-      - "./pretrained_model:/pretrained_model"
-      - precomputed_image_embeddings:/precomputed
+      - pretrained_model:/pretrained_model
+      - precomputed_image_embeddings:/precompute_image_embeddings
     environment:
       DB_HOST: "db"
     depends_on:
@@ -16,14 +25,6 @@ services:
       db:
         condition: service_healthy
 
-  precompute-image-embeddings:
-    build:
-      context: ./
-      dockerfile: precompute.Dockerfile
-    volumes:
-      - "./images:/images"
-      - "./pretrained_model:/pretrained_model"
-      - precomputed_image_embeddings:/precomputed
   db:
     image: postgres:16.10-alpine
     environment:
@@ -41,5 +42,6 @@ services:
 
 volumes:
   precomputed_image_embeddings:
+  pretrained_model:
   db-data:
     
