@@ -10,8 +10,7 @@ from transformers import AutoTokenizer, CLIPModel
 from fastapi import FastAPI, Depends, HTTPException 
 from pydantic import BaseModel, AfterValidator
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import create_engine
 from typing import Annotated
 
 db_host = os.getenv("DB_HOST", "localhost")
