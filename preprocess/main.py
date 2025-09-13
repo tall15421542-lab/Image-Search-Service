@@ -6,15 +6,10 @@ from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
 
 if not os.path.isfile(constants.IMAGE_EMBEDDING_STORE_PATH):
-    loading_start = time.monotonic()
-
     model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", cache_dir = constants.PRETRAINED_MODEL_CACHE_PATH)
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True, cache_dir = constants.PRETRAINED_MODEL_CACHE_PATH)
 
-    loading_end = time.monotonic()
-    print(f"Loading Model Time: {(loading_end - loading_start): .2f} seconds")
-
-# Load images
+    # Load images
     image_urls = []
     for root, dirs, files in os.walk("images"):
         for name in files:

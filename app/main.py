@@ -1,5 +1,4 @@
 import torch
-import time
 import constants
 from . import model
 import uuid
@@ -16,7 +15,7 @@ from typing import Annotated
 db_host = os.getenv("DB_HOST", "localhost")
 
 DATABASE_URL = "postgresql://postgres:postgres@{db_host}:5432/db".format(db_host = db_host)
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 model.Base.metadata.create_all(bind=engine)
 
@@ -28,24 +27,14 @@ def get_db():
         db.close()
 
 # Load pre-trained CLIP model and processor
-loading_start = time.monotonic()
-
 MODEL_NAME="openai/clip-vit-base-patch32"
 
 ml_model = CLIPModel.from_pretrained(MODEL_NAME, cache_dir=constants.PRETRAINED_MODEL_CACHE_PATH)
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True, cache_dir=constants.PRETRAINED_MODEL_CACHE_PATH)
 
-loading_end = time.monotonic()
-print(f"Loading Model Time: {(loading_end - loading_start): .2f} seconds")
-
-loading_embeddings_start = time.monotonic()
-
 store = torch.load(constants.IMAGE_EMBEDDING_STORE_PATH)
 image_embeddings = store[constants.IMAGE_EMBEDDINGS_KEY]
 image_urls = store[constants.IMAGE_URLS_KEY]
-
-loading_embeddings_end = time.monotonic()
-print(f"Loading embeddings Time: {(loading_embeddings_end - loading_embeddings_start): .2f} seconds")
 
 app = FastAPI()
 
@@ -58,42 +47,23 @@ class SearchResponse(BaseModel):
 
 @app.post("/search", response_model=SearchResponse)
 def search_similar_image(search_request: SearchRequest, db: Session = Depends(get_db)):
-    search_start = time.monotonic()
     text = search_request.text 
 
-# Preprocess inputs
-    preprocess_start = time.monotonic()
-
+    # Preprocess inputs
     inputs = tokenizer(text=text, return_tensors="pt", padding=True)
 
-    preprocess_end = time.monotonic()
-    print(f"Preprocess Time: {(preprocess_end - preprocess_start): .2f} seconds")
-
-# Generate embeddings
-    generate_embedding_start = time.monotonic()
-
+    # Generate embeddings
     with torch.no_grad():
         text_embeddings = ml_model.get_text_features(**inputs)
 
-    generate_embedding_end = time.monotonic()
-    print(f"Generate Embedding Time: {(generate_embedding_end - generate_embedding_start): .2f} seconds")
-
-# Extract and normalize image and text embeddings
+    # Extract and normalize image and text embeddings
     text_embeddings = text_embeddings / text_embeddings.norm(dim=-1, keepdim=True)
 
-# Compute cosine similarity
-    compute_consine_scores_start = time.monotonic()
-
+    # Compute cosine similarity
     cosine_scores = cosine_similarity(image_embeddings, text_embeddings)
 
-    compute_consine_scores_end = time.monotonic()
-    print(f"Compute consine similarity Time: {(compute_consine_scores_end - compute_consine_scores_start): .2f} seconds")
-
-# Output the most similar image
+    # Output the most similar image
     most_similar_index = torch.argmax(cosine_scores).item()
-
-    search_end = time.monotonic()
-    print(f"Search Time: {(search_end - search_start): .2f} seconds")
 
     image_url = image_urls[most_similar_index]
 
