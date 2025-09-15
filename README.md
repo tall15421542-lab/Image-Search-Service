@@ -4,8 +4,10 @@ From the project root directory, run:
 ```bash
 docker compose up -d
 ```
-First build and run will take longer to complete. 
+The first build and run will take longer to complete. 
 Subsequent runs should start within seconds.
+
+<img width="1347" height="772" alt="截圖 2025-09-15 下午3 27 01" src="https://github.com/user-attachments/assets/519ed2cd-8165-4891-92e4-9e7542f98b5e" />
 
 ## API
 - Documentation: After running the service, open [localhost:8000/docs](http://0.0.0.0:8000/docs)
@@ -30,7 +32,7 @@ curl --location 'http://localhost:8000/search' \
 
 ### POST /inference/feedback
 Give feedback for an inference. The valid feedback is -1(bad) or 1(good).
-Inference Id comes from `POST /search` response. 
+Inference ID comes from the `POST /search` response. 
 #### curl example
 ```bash
 curl --location 'http://localhost:8000/inference/feedback' \
